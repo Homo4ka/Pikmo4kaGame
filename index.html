@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Space Clicker</title>
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle, #0d1b2a 0%, #010811 100%);
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            display: flex;
+        }
+
+        #game-zone {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #ui-zone {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-left: 1px solid #1e3d59;
+        }
+
+        #counter {
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00f0ff;
+            margin-bottom: 5px;
+        }
+
+        #cps-counter {
+            color: #8bd3dd;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* <(0-0)> */
+        #planet {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #4361ee, #3a0ca3);
+            box-shadow: 0 0 40px #4cc9f0, inset -20px -20px 50px #000;
+            cursor: pointer;
+            transition: transform 0.05s;
+        }
+
+            #planet:active {
+                transform: scale(0.95);
+            }
+
+        .shop-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #3f37c9;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button.buy-btn {
+            background: #4cc9f0;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-zone">
+        <div id="counter">Материя: 0 СМ</div>
+        <div id="cps-counter">Генерация: 0 СМ/сек</div>
+        <div id="planet" onclick="onPlanetClick()"></div>
+    </div>
+
+    <div id="ui-zone">
+        <h2>Орбитальный Магазин</h2>
+        <div class="shop-item">
+            <div>
+                <strong>Дроны-сборщики</strong><br>
+                <small id="cost-drone">Цена: 15 СМ</small>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade('drone')">+1 CPS</button>
+        </div>
+        <div class="shop-item">
+            <div>
+                <strong>Космическая Станция</strong><br>
+                <small id="cost-station">Цена: 100 СМ</small>
+            </div>
+            <button class="buy-btn" style="background:#f72585;" onclick="buyUpgrade('station')">+10 CPS</button>
+        </div>
+    </div>
+
+    <div id="effects-layer" style="position: absolute; top:0; left:0; width:100vw; height:100vh; pointer-events: none; z-index: 10;"></div>
+
+    <script>
+        function sendToCSharp(textCommand) {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage(textCommand);
+            }
+        }
+
+        function onPlanetClick(event) {
+            sendToCSharp("click");
+            createClickEffect(event.clientX, event.clientY);
+        }
+
+        function buyUpgrade(type) {
+            sendToCSharp("buy_" + type);
+        }
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', event => {
+                const data = event.data;
+                document.getElementById('counter').innerText = `Материя: ${data.matter} СМ`;
+                document.getElementById('cps-counter').innerText = `Генерация: ${data.cps} СМ/сек`;
+                document.getElementById('cost-drone').innerText = `Цена: ${data.droneCost} СМ`;
+                document.getElementById('cost-station').innerText = `Цена: ${data.stationCost} СМ`;
+            });
+        }
+
+    </script>
+</body>
+</html>
